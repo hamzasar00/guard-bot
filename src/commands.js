@@ -1,9 +1,11 @@
 const {
+  ChannelType,
   EmbedBuilder,
   PermissionFlagsBits,
   PermissionsBitField,
   SlashCommandBuilder
 } = require("discord.js");
+const { joinVoiceChannel, getVoiceConnection } = require("@discordjs/voice");
 const storage = require("./storage");
 const { isStaff } = require("./utils");
 
@@ -22,6 +24,17 @@ const commandData = [
     .setDescription("Guard bot güvenlik komutları")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .addSubcommand((sub) => sub.setName("setup").setDescription("Karantina rolünü oluşturur"))
+    .addSubcommand((sub) => sub
+      .setName("join")
+      .setDescription("Seçilen ses kanalına girer")
+      .addChannelOption((option) => option
+        .setName("kanal")
+        .setDescription("Girilmesi gereken ses kanalı")
+        .addChannelTypes(ChannelType.GuildVoice)
+        .setRequired(true)
+      )
+    )
+    .addSubcommand((sub) => sub.setName("leave").setDescription("Ses kanalından çıkar"))
     .addSubcommand((sub) => sub.setName("status").setDescription("Koruma ayarlarını gösterir"))
     .addSubcommand((sub) =>
       sub
@@ -110,6 +123,45 @@ async function handleCommand(interaction) {
   const subcommand = interaction.options.getSubcommand();
   const settings = storage.get(interaction.guildId);
 
+  if (subcommand === "join") {
+    const voiceChannel = interaction.options.getChannel("kanal", true);
+    const botMember = interaction.guild.members.me;
+    const channelPermissions = voiceChannel.permissionsFor(botMember);
+    if (!channelPermissions?.has(PermissionFlagsBits.Connect)) {
+      return interaction.reply({
+        content: "Botun bu ses kanalına bağlanma izni yok.",
+        ephemeral: true
+      });
+    }
+
+    joinVoiceChannel({
+      channelId: voiceChannel.id,
+      guildId: interaction.guildId,
+      adapterCreator: interaction.guild.voiceAdapterCreator,
+      selfDeaf: false,
+      selfMute: false
+    });
+
+    return interaction.reply({
+      content: "Ses kanalına girdim: **" + voiceChannel.name + "**",
+      ephemeral: true
+    });
+  }
+
+  if (subcommand === "leave") {
+    const connection = getVoiceConnection(interaction.guildId);
+    if (!connection) {
+      return interaction.reply({
+        content: "Bot şu anda bir ses kanalında değil.",
+        ephemeral: true
+      });
+    }
+    connection.destroy();
+    return interaction.reply({
+      content: "Ses kanalından çıktım.",
+      ephemeral: true
+    });
+  }
   if (subcommand === "setup") {
     await interaction.deferReply({ ephemeral: true });
     let quarantineRole;
