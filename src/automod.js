@@ -1,4 +1,3 @@
-const { PermissionsBitField } = require("discord.js");
 const storage = require("./storage");
 const { isExempt, safeName } = require("./utils");
 
@@ -43,6 +42,15 @@ function hasBlockedWord(content, blockedWords) {
   });
 }
 
+function normalizeDomain(domain) {
+  return String(domain)
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .split("/")[0]
+    .replace(/^www\./, "");
+}
+
 async function handleMessage(message) {
   if (!message.guild || message.author.bot || !message.member) return;
 
@@ -54,11 +62,17 @@ async function handleMessage(message) {
   }
 
   if (settings.antiLink.enabled) {
-    const urls = message.content.match(/https?:\/\/[^\s]+/gi) || [];
+    const urls =
+      message.content.match(
+        /(?:https?:\/\/|www\.)[^\s]+|(?:discord\.gg|discordapp\.com\/invite)\/[^\s]+/gi
+      ) || [];
+    const allowedDomains = settings.antiLink.allowedDomains.map(normalizeDomain);
     const blockedUrl = urls.find((url) => {
       try {
-        const hostname = new URL(url).hostname.toLowerCase();
-        return !settings.antiLink.allowedDomains.some(
+        const hostname = normalizeDomain(
+          new URL(url.startsWith("www.") ? `https://${url}` : url).hostname
+        );
+        return !allowedDomains.some(
           (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
         );
       } catch {
