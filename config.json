@@ -1,0 +1,40 @@
+{
+  "databaseFile": "./data/guilds.json",
+  "defaultSettings": {
+    "quarantineRoleName": "Guard Quarantine",
+    "whitelist": [],
+    "antiRaid": {
+      "enabled": true,
+      "joinLimit": 6,
+      "windowSeconds": 20,
+      "lockdownMinutes": 10,
+      "action": "kick"
+    },
+    "antiSpam": {
+      "enabled": true,
+      "maxMessages": 6,
+      "intervalSeconds": 5,
+      "timeoutMinutes": 5
+    },
+    "antiLink": {
+      "enabled": true,
+      "allowedDomains": [],
+      "action": "delete"
+    },
+    "antiMention": {
+      "enabled": true,
+      "maxMentions": 5,
+      "action": "timeout"
+    },
+    "antiNuke": {
+      "enabled": true,
+      "maxActions": 3,
+      "windowSeconds": 15,
+      "action": "ban"
+    },
+    "automod": {
+      "enabled": true,
+      "blockedWords": []
+    }
+  }
+}
