@@ -1,0 +1,18 @@
+{
+  "name": "guard-bot",
+  "version": "1.0.0",
+  "description": "Discord sunucuları için kapsamlı güvenlik ve moderasyon botu.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node --check src/index.js && node --check src/commands.js && node --check src/events.js && node --check src/automod.js && node --check src/storage.js && node --check src/config.js"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.17.3",
+    "dotenv": "^16.4.7",
+    "ms": "^2.1.3"
+  }
+}
