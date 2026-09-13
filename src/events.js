@@ -1,4 +1,4 @@
-const { AuditLogEvent } = require("discord.js");
+const { ActivityType, AuditLogEvent } = require("discord.js");
 const storage = require("./storage");
 const { isExempt, safeName } = require("./utils");
 const { handleMessage } = require("./automod");
@@ -126,7 +126,10 @@ async function onAuditLog(entry, guild) {
 async function onReady(client) {
   console.log(`[READY] ${client.user.tag} olarak giriş yapıldı.`);
   console.log(`[READY] ${client.guilds.cache.size} sunucuda aktif.`);
-  client.user.setPresence({ status: "dnd" });
+  client.user.setPresence({
+    status: "dnd",
+    activities: [{ name: "Sunucunu koruyor 🛡️", type: ActivityType.Playing }]
+  });
 }
 
 function registerEvents(client) {
