@@ -48,7 +48,7 @@ client.once(Events.ClientReady, async () => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand() || interaction.commandName !== "guard") return;
+  if (!interaction.isChatInputCommand() || interaction.commandName !== "koruma") return;
   try {
     await handleCommand(interaction);
   } catch (error) {
