@@ -1,7 +1,4 @@
-const {
-  AuditLogEvent,
-  PermissionsBitField
-} = require("discord.js");
+const { AuditLogEvent } = require("discord.js");
 const storage = require("./storage");
 const { isExempt, safeName } = require("./utils");
 const { handleMessage } = require("./automod");
@@ -34,6 +31,11 @@ async function punishRaidMember(member, settings) {
 async function onMemberJoin(member) {
   const settings = storage.get(member.guild.id);
   const now = Date.now();
+  const lockdownActive =
+    settings.lockdownUntil && settings.lockdownUntil > now;
+
+  if (!settings.antiRaid.enabled && !lockdownActive) return;
+
   const key = member.guild.id;
   const joins = recentItems(
     joinHistory,
@@ -42,8 +44,8 @@ async function onMemberJoin(member) {
   );
   joins.push(now);
 
-  if (!settings.antiRaid.enabled || isExempt(member, settings)) return;
-  if (settings.lockdownUntil && settings.lockdownUntil > now) {
+  if (isExempt(member, settings)) return;
+  if (lockdownActive) {
     await punishRaidMember(member, settings);
     return;
   }
@@ -54,7 +56,7 @@ async function onMemberJoin(member) {
     });
     await punishRaidMember(member, settings);
     console.log(
-      `[ANTI-RAID] ${member.guild.name} kilitlendi: ${joins.length} yeni katılım`
+      `[ANTI-RAID] ${member.guild.name} yeni katılım kilidine alındı: ${joins.length} yeni katılım`
     );
   }
 }
@@ -65,8 +67,17 @@ function trackedAuditAction(action) {
     AuditLogEvent.ChannelDelete,
     AuditLogEvent.RoleCreate,
     AuditLogEvent.RoleDelete,
-    AuditLogEvent.BanAdd,
-    AuditLogEvent.Kick
+    AuditLogEvent.RoleUpdate,
+    AuditLogEvent.MemberBanAdd,
+    AuditLogEvent.MemberKick,
+    AuditLogEvent.MemberRoleUpdate,
+    AuditLogEvent.ChannelOverwriteCreate,
+    AuditLogEvent.ChannelOverwriteUpdate,
+    AuditLogEvent.ChannelOverwriteDelete,
+    AuditLogEvent.WebhookCreate,
+    AuditLogEvent.WebhookUpdate,
+    AuditLogEvent.WebhookDelete,
+    AuditLogEvent.BotAdd
   ].includes(action);
 }
 
@@ -93,19 +104,22 @@ async function onAuditLog(entry, guild) {
 
   if (actions.length < settings.antiNuke.maxActions) return;
 
+  let punished = false;
   try {
     if (settings.antiNuke.action === "ban" && member.bannable) {
       await member.ban({ reason: "Guard anti-nuke: çok sayıda kritik işlem" });
+      punished = true;
     } else if (member.moderatable) {
       await member.timeout(60 * 60 * 1000, "Guard anti-nuke");
+      punished = true;
     }
   } catch (error) {
     console.error("[ANTI-NUKE] Ceza uygulanamadi:", error.message);
   }
 
-  console.log(
-    `[ANTI-NUKE] ${guild.name}: ${safeName(entry.executor)} cezalandırıldı`
-  );
+  console.log(punished
+    ? `[ANTI-NUKE] ${guild.name}: ${safeName(entry.executor)} cezalandırıldı`
+    : `[ANTI-NUKE] ${guild.name}: ${safeName(entry.executor)} için botun yetkisi yetersiz`);
   auditHistory.delete(key);
 }
 
