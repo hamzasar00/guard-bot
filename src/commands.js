@@ -21,12 +21,12 @@ const features = [
 
 const commandData = [
   new SlashCommandBuilder()
-    .setName("guard")
+    .setName("koruma")
     .setDescription("Guard bot güvenlik komutları")
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .addSubcommand((sub) => sub.setName("setup").setDescription("Karantina rolünü oluşturur"))
+    .addSubcommand((sub) => sub.setName("kurulum").setDescription("Karantina rolünü oluşturur"))
     .addSubcommand((sub) => sub
-      .setName("join")
+      .setName("katil")
       .setDescription("Seçilen ses kanalına girer")
       .addChannelOption((option) => option
         .setName("kanal")
@@ -35,11 +35,11 @@ const commandData = [
         .setRequired(true)
       )
     )
-    .addSubcommand((sub) => sub.setName("leave").setDescription("Ses kanalından çıkar"))
-    .addSubcommand((sub) => sub.setName("status").setDescription("Koruma ayarlarını gösterir"))
+    .addSubcommand((sub) => sub.setName("cik").setDescription("Ses kanalından çıkar"))
+    .addSubcommand((sub) => sub.setName("durum").setDescription("Koruma ayarlarını gösterir"))
     .addSubcommand((sub) =>
       sub
-        .setName("lockdown")
+        .setName("kilitle")
         .setDescription("Yeni katılımları geçici olarak engeller")
         .addIntegerOption((option) =>
           option
@@ -50,10 +50,10 @@ const commandData = [
             .setRequired(false)
         )
     )
-    .addSubcommand((sub) => sub.setName("unlock").setDescription("Sunucu kilidini kaldırır"))
+    .addSubcommand((sub) => sub.setName("kilidi-ac").setDescription("Sunucu kilidini kaldırır"))
     .addSubcommand((sub) =>
       sub
-        .setName("toggle")
+        .setName("ayarla")
         .setDescription("Bir korumayı açar veya kapatır")
         .addStringOption((option) =>
           option
@@ -68,7 +68,7 @@ const commandData = [
     )
     .addSubcommand((sub) =>
       sub
-        .setName("whitelist")
+        .setName("beyaz-liste")
         .setDescription("Whitelist kullanıcılarını yönetir")
         .addStringOption((option) =>
           option
@@ -124,7 +124,7 @@ async function handleCommand(interaction) {
   const subcommand = interaction.options.getSubcommand();
   const settings = storage.get(interaction.guildId);
 
-  if (subcommand === "join") {
+  if (subcommand === "katil") {
     const voiceChannel = interaction.options.getChannel("kanal", true);
     const botMember = interaction.guild.members.me;
     const channelPermissions = voiceChannel.permissionsFor(botMember);
@@ -149,7 +149,7 @@ async function handleCommand(interaction) {
     });
   }
 
-  if (subcommand === "leave") {
+  if (subcommand === "cik") {
     const connection = getVoiceConnection(interaction.guildId);
     if (!connection) {
       return interaction.reply({
@@ -163,7 +163,7 @@ async function handleCommand(interaction) {
       flags: MessageFlags.Ephemeral
     });
   }
-  if (subcommand === "setup") {
+  if (subcommand === "kurulum") {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     let quarantineRole;
     try {
@@ -180,7 +180,7 @@ async function handleCommand(interaction) {
     return;
   }
 
-  if (subcommand === "status") {
+  if (subcommand === "durum") {
     const lines = features.map(
       ([key, name]) => `• **${name}:** ${settings[key].enabled ? "Açık" : "Kapalı"}`
     );
@@ -195,7 +195,7 @@ async function handleCommand(interaction) {
     return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   }
 
-  if (subcommand === "toggle") {
+  if (subcommand === "ayarla") {
     const feature = interaction.options.getString("koruma", true);
     const enabled = interaction.options.getBoolean("aktif", true);
     storage.update(interaction.guildId, (value) => {
@@ -207,13 +207,13 @@ async function handleCommand(interaction) {
     });
   }
 
-  if (subcommand === "lockdown" || subcommand === "unlock") {
+  if (subcommand === "kilitle" || subcommand === "kilidi-ac") {
     const minutes = interaction.options.getInteger("dakika") || settings.antiRaid.lockdownMinutes;
     storage.update(interaction.guildId, (value) => {
-      value.lockdownUntil = subcommand === "lockdown" ? Date.now() + minutes * 60 * 1000 : null;
+      value.lockdownUntil = subcommand === "kilitle" ? Date.now() + minutes * 60 * 1000 : null;
     });
     await interaction.reply({
-      content: subcommand === "lockdown"
+      content: subcommand === "kilitle"
         ? `🔒 Yeni katılım kilidi ${minutes} dakika aktif.`
         : "🔓 Yeni katılım kilidi kaldırıldı.",
       flags: MessageFlags.Ephemeral
@@ -221,7 +221,7 @@ async function handleCommand(interaction) {
     return;
   }
 
-  if (subcommand === "whitelist") {
+  if (subcommand === "beyaz-liste") {
     const action = interaction.options.getString("islem", true);
     const user = interaction.options.getUser("kullanici");
     if (action !== "list" && !user) {
