@@ -1,6 +1,7 @@
 const {
   EmbedBuilder,
   PermissionFlagsBits,
+  PermissionsBitField,
   SlashCommandBuilder
 } = require("discord.js");
 const storage = require("./storage");
@@ -25,7 +26,7 @@ const commandData = [
     .addSubcommand((sub) =>
       sub
         .setName("lockdown")
-        .setDescription("Sunucuyu geçici olarak kilitler")
+        .setDescription("Yeni katılımları geçici olarak engeller")
         .addIntegerOption((option) =>
           option
             .setName("dakika")
@@ -73,12 +74,22 @@ const commandData = [
 ].map((command) => command.toJSON());
 
 async function setupGuild(guild) {
+  const botMember = guild.members.me;
+  if (
+    botMember &&
+    !botMember.permissions.has(PermissionsBitField.Flags.ManageRoles)
+  ) {
+    throw new Error("Botun rolleri yönetme yetkisi yok.");
+  }
+
+  const settings = storage.get(guild.id);
+  const roleName = settings.quarantineRoleName || "Guard Quarantine";
   let quarantineRole = guild.roles.cache.find(
-    (role) => role.name === "Guard Quarantine"
+    (role) => role.name === roleName
   );
   if (!quarantineRole) {
     quarantineRole = await guild.roles.create({
-      name: "Guard Quarantine",
+      name: roleName,
       color: 0xed4245,
       reason: "Guard bot karantina rolü"
     });
@@ -101,7 +112,15 @@ async function handleCommand(interaction) {
 
   if (subcommand === "setup") {
     await interaction.deferReply({ ephemeral: true });
-    const { quarantineRole } = await setupGuild(interaction.guild);
+    let quarantineRole;
+    try {
+      ({ quarantineRole } = await setupGuild(interaction.guild));
+    } catch (error) {
+      console.error("[SETUP] Kurulum başarısız:", error.message);
+      return interaction.editReply(
+        `Kurulum başarısız: ${error.message} Botta **Rolleri Yönet** yetkisi olduğundan emin ol.`
+      );
+    }
     await interaction.editReply(
       `Kurulum tamamlandı.\nKarantina rolü: ${quarantineRole}`
     );
@@ -142,8 +161,8 @@ async function handleCommand(interaction) {
     });
     await interaction.reply({
       content: subcommand === "lockdown"
-        ? `🔒 Sunucu ${minutes} dakika kilitlendi.`
-        : "🔓 Sunucu kilidi kaldırıldı.",
+        ? `🔒 Yeni katılım kilidi ${minutes} dakika aktif.`
+        : "🔓 Yeni katılım kilidi kaldırıldı.",
       ephemeral: true
     });
     return;
