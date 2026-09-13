@@ -38,7 +38,16 @@ if not exist data mkdir data
 
 echo.
 echo [BILGI] NPM paketleri kuruluyor...
-call npm install
+
+rem Replit ortamindan kalan eski lock dosyalarini Windows kurulumundan temizle
+if exist package-lock.json (
+  findstr /C:"package-firewall.replit.internal" package-lock.json >nul 2>nul
+  if not errorlevel 1 (
+    echo [BILGI] Eski Replit package-lock.json temizleniyor...
+    del /f /q package-lock.json
+  )
+)
+call npm install --registry=https://registry.npmjs.org/
 if errorlevel 1 (
   echo [HATA] npm install basarisiz oldu.
   pause
