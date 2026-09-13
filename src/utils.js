@@ -10,7 +10,9 @@ function isExempt(member, settings) {
   return (
     isOwner(member.id) ||
     settings.whitelist.includes(member.id) ||
-    member.permissions.has(PermissionsBitField.Flags.Administrator)
+    Boolean(
+      member.permissions?.has(PermissionsBitField.Flags.Administrator)
+    )
   );
 }
 
@@ -18,7 +20,7 @@ function isStaff(member) {
   return Boolean(
     member &&
       (isOwner(member.id) ||
-        member.permissions.has(PermissionsBitField.Flags.ManageGuild))
+        Boolean(member.permissions?.has(PermissionsBitField.Flags.ManageGuild)))
   );
 }
 
