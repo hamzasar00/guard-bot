@@ -4,7 +4,7 @@ Discord sunucuları için Node.js ve discord.js ile hazırlanmış güvenlik bot
 
 ## Özellikler
 
-- Anti-raid: kısa sürede çok sayıda katılımda otomatik lockdown
+- Anti-raid: kısa sürede çok sayıda katılımda yeni girişleri geçici olarak kilitler
 - Anti-spam: mesaj hızını takip eder, spam yapan üyeye timeout uygular
 - Link koruması: izin verilmeyen bağlantıları siler
 - Mention koruması: toplu kullanıcı/rol mention'larını engeller
@@ -44,8 +44,8 @@ OWNER_IDS=senin_discord_id
 
 - `/guard setup` — `Guard Quarantine` rolünü oluşturur
 - `/guard status` — aktif korumaları gösterir
-- `/guard lockdown dakika` — manuel lockdown başlatır
-- `/guard unlock` — lockdown'u kaldırır
+- `/guard lockdown dakika` — yeni katılım kilidi başlatır
+- `/guard unlock` — yeni katılım kilidini kaldırır
 - `/guard toggle koruma aktif` — koruma açar/kapatır
 - `/guard whitelist add/remove/list kullanici` — whitelist yönetir
 
@@ -54,4 +54,14 @@ OWNER_IDS=senin_discord_id
 - `.env` dosyasını GitHub'a yükleme; bu dosya `.gitignore` ile korunur.
 - Anti-nuke ve anti-raid işlemleri botun rol hiyerarşisine ve Discord yetkilerine bağlıdır.
 - Bot rolünü koruma uygulanacak üyelerin üzerinde tut.
+- Anti-nuke için botta `View Audit Log` yetkisi bulunmalıdır.
+- Anti-raid ve lockdown mesaj kanallarını kilitlemez; yeni katılımları kick/timeout ile sınırlar.
 - Ayarları değiştirmek için `config.json` içindeki varsayılanları düzenleyebilir veya slash komutlarını kullanabilirsin.
+
+## Geliştirici kontrolleri
+
+```bash
+npm run check
+npm test
+npm audit --omit=dev
+```
