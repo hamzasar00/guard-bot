@@ -126,6 +126,7 @@ async function onAuditLog(entry, guild) {
 async function onReady(client) {
   console.log(`[READY] ${client.user.tag} olarak giriş yapıldı.`);
   console.log(`[READY] ${client.guilds.cache.size} sunucuda aktif.`);
+  client.user.setPresence({ status: "dnd" });
 }
 
 function registerEvents(client) {
