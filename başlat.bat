@@ -22,12 +22,19 @@ if not exist .env (
   exit /b 1
 )
 
+:BOT_LOOP
 echo.
-echo [BILGI] Guard Bot baslatiliyor. Durdurmak icin CTRL+C.
+echo [BILGI] Guard Bot baslatiliyor. Durdurmak icin pencereyi kapat.
 echo.
 call npm start
-if errorlevel 1 (
-  echo.
-  echo [HATA] Bot kapandi. Yukaridaki hatayi kontrol et.
-  pause
+set "EXIT_CODE=%ERRORLEVEL%"
+
+echo.
+if "%EXIT_CODE%"=="0" (
+  echo [UYARI] Bot islemi sonlandirdi.
+) else (
+  echo [HATA] Bot %EXIT_CODE% koduyla kapandi.
 )
+echo [BILGI] 10 saniye icinde yeniden baslatilacak...
+timeout /t 10 /nobreak >nul
+goto BOT_LOOP
