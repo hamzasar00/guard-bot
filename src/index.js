@@ -68,4 +68,7 @@ process.on("unhandledRejection", (error) => {
   console.error("[PROCESS] Yakalanmayan promise hatası:", error);
 });
 
-client.login(config.token);
+client.login(config.token).catch((error) => {
+  console.error("[LOGIN] Discord'a giriş yapılamadı:", error.message);
+  process.exitCode = 1;
+});
