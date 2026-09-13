@@ -1,6 +1,7 @@
 const {
   ChannelType,
   EmbedBuilder,
+  MessageFlags,
   PermissionFlagsBits,
   PermissionsBitField,
   SlashCommandBuilder
@@ -117,7 +118,7 @@ async function setupGuild(guild) {
 async function handleCommand(interaction) {
   if (!interaction.inGuild()) return;
   if (!isStaff(interaction.member)) {
-    return interaction.reply({ content: "Bu komut için `Sunucuyu Yönet` yetkisi gerekiyor.", ephemeral: true });
+    return interaction.reply({ content: "Bu komut için `Sunucuyu Yönet` yetkisi gerekiyor.", flags: MessageFlags.Ephemeral });
   }
 
   const subcommand = interaction.options.getSubcommand();
@@ -130,7 +131,7 @@ async function handleCommand(interaction) {
     if (!channelPermissions?.has(PermissionFlagsBits.Connect)) {
       return interaction.reply({
         content: "Botun bu ses kanalına bağlanma izni yok.",
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     }
 
@@ -144,7 +145,7 @@ async function handleCommand(interaction) {
 
     return interaction.reply({
       content: "Ses kanalına girdim: **" + voiceChannel.name + "**",
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
   }
 
@@ -153,17 +154,17 @@ async function handleCommand(interaction) {
     if (!connection) {
       return interaction.reply({
         content: "Bot şu anda bir ses kanalında değil.",
-        ephemeral: true
+        flags: MessageFlags.Ephemeral
       });
     }
     connection.destroy();
     return interaction.reply({
       content: "Ses kanalından çıktım.",
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
   }
   if (subcommand === "setup") {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     let quarantineRole;
     try {
       ({ quarantineRole } = await setupGuild(interaction.guild));
@@ -191,7 +192,7 @@ async function handleCommand(interaction) {
         { name: "Whitelist", value: `${settings.whitelist.length} kullanıcı`, inline: true },
         { name: "Anti-raid", value: `${settings.antiRaid.joinLimit} kişi / ${settings.antiRaid.windowSeconds} sn`, inline: true }
       );
-    return interaction.reply({ embeds: [embed], ephemeral: true });
+    return interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   }
 
   if (subcommand === "toggle") {
@@ -202,7 +203,7 @@ async function handleCommand(interaction) {
     });
     return interaction.reply({
       content: `\`${feature}\` koruması **${enabled ? "açıldı" : "kapatıldı"}**.`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
   }
 
@@ -215,7 +216,7 @@ async function handleCommand(interaction) {
       content: subcommand === "lockdown"
         ? `🔒 Yeni katılım kilidi ${minutes} dakika aktif.`
         : "🔓 Yeni katılım kilidi kaldırıldı.",
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
     return;
   }
@@ -224,13 +225,13 @@ async function handleCommand(interaction) {
     const action = interaction.options.getString("islem", true);
     const user = interaction.options.getUser("kullanici");
     if (action !== "list" && !user) {
-      return interaction.reply({ content: "Bu işlem için kullanıcı seçmelisin.", ephemeral: true });
+      return interaction.reply({ content: "Bu işlem için kullanıcı seçmelisin.", flags: MessageFlags.Ephemeral });
     }
     if (action === "list") {
       const list = settings.whitelist.length
         ? settings.whitelist.map((id) => `<@${id}>`).join(", ")
         : "Whitelist boş.";
-      return interaction.reply({ content: `**Whitelist:** ${list}`, ephemeral: true });
+      return interaction.reply({ content: `**Whitelist:** ${list}`, flags: MessageFlags.Ephemeral });
     }
     storage.update(interaction.guildId, (value) => {
       const exists = value.whitelist.includes(user.id);
@@ -239,7 +240,7 @@ async function handleCommand(interaction) {
     });
     return interaction.reply({
       content: `${user} whitelist'ten ${action === "add" ? "eklendi." : "çıkarıldı."}`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
   }
 }
