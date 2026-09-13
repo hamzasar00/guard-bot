@@ -128,7 +128,7 @@ async function onReady(client) {
   console.log(`[READY] ${client.guilds.cache.size} sunucuda aktif.`);
   client.user.setPresence({
     status: "dnd",
-    activities: [{ name: "Sunucunu koruyor 🛡️", type: ActivityType.Playing }]
+    activities: [{ name: "Sunucunu koruyor", type: ActivityType.Playing }]
   });
 }
 
